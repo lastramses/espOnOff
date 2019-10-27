@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+	<link href='style.css' rel='stylesheet' type='text/css'>
+	<title>espOnOff Livingroom 1 device settings</title>
+	<script>
+	function getDeviceInfo(tableId){
+		xmlhttp  =new XMLHttpRequest();
+		xmlhttp.open("POST","/getData",true);
+		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		xmlhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var deviceDataArry = JSON.parse(this.responseText);
+				console.log(deviceDataArry);
+				populateDataTable(tableId,deviceDataArry);
+			}
+		};
+		xmlhttp.send(tableId);
+	}
+	
+	function populateDataTable(tableId,inArray){
+
+		var tableData = document.getElementById(tableId);
+		var i;
+		for(i = 0; i < inArray.espData.length; i++){
+			var newRow = tableData.insertRow(i);
+			var newcell1 = newRow.insertCell(0);
+			var newcell2 = newRow.insertCell(1);
+			newcell1.innerHTML = inArray.espData[i].Field;
+			newcell2.innerHTML = "<input type=\"text\" class=inputBox name="+inArray.espData[i].Field+" value="+inArray.espData[i].Data+">";
+		}
+	}
+	
+	function openNav(){
+		document.getElementById("mySidebar").style.width = "250px";
+		document.getElementById("main").style.marginLeft = "250px";
+	}
+	/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+	function closeNav() {
+		document.getElementById("mySidebar").style.width = "0";
+		document.getElementById("main").style.marginLeft = "0";
+	} 
+	</script> 
+</head>
+<body style = "background-color: #0090c1" onload="getDeviceInfo('deviceSSID')">
+	<div id="mySidebar" class="sidebar">
+		<a href="javascript:void(0)" class="navCloseBtn" onclick="closeNav()">&times;</a>
+		<a href="index.html">Home</a>
+		<a href="settings.html">Settings</a>
+		<a href="info.html">Info</a>
+	</div>
+	<div id="main">
+		<button class="navOpenBtn" onclick="openNav()">&#9776;</button>
+		<br><center>
+		<form action="saveSSID" method="post">
+		<table  id="deviceSSID" border=1 cellpadding=5>
+		<button id="saveBtn" name="saveSSID" value="Save">Save</button>
+		<button id="cancelBtn" name="cancelSSID" value="Cancel">Cancel</button>
+		</table>
+		</form>
+		</center>
+		<a href="\DeviceReset">ESP Device Reset</a>
+	</div>
+	
+</body>
+</html>
