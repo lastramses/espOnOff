@@ -187,3 +187,30 @@ bool loadFromSpiffs(String path) {
     dataFile.close();
     return fileTransferStatus;
 }
+
+void udpProcess(){
+  char incomingPacket[255];
+    stdOut("Received " + String(udpServer.parsePacket()) + 
+      " bytes from " + udpServer.remoteIP().toString() + 
+      ":" + String(udpServer.remotePort()));
+    int len = udpServer.read(incomingPacket, 255);
+    if (len > 0)
+      incomingPacket[len] = 0;
+    String strIncomingPacket = String(incomingPacket);
+    stdOut("UDP packet contents: " + strIncomingPacket);
+    
+    udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+    if (strIncomingPacket == "RelayStReq=0xAA"){
+      udpServer.write("0xAA");
+       espOnOff.setRelaySt(besON,besRelReqUDP);
+      stdOut("UDP Turn On Relay");
+    }else if (strIncomingPacket == "RelayStReq=0x55"){
+      udpServer.write("0xAA");
+      espOnOff.setRelaySt(besOFF,besRelReqUDP);
+      stdOut("UDP Turn Off Relay");
+    }else{
+      udpServer.write("unknown command");
+      stdOut("UDP unknown command");
+    }
+    udpServer.endPacket();
+}

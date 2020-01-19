@@ -15,6 +15,8 @@
 ESP8266WebServer httpServer(80);
 ESP8266HTTPUpdateServer httpUpdater;
 
+WiFiUDP udpServer;
+
 WiFiServer telnetServer(23);
 WiFiClient telnetClient;
 
@@ -104,7 +106,7 @@ void configWIFI(){
       WiFi.softAPConfig(IPAddress(192,168,0,1), IPAddress(192,168,0,1), IPAddress(255,255,255,0)) ;
       WiFi.softAP(espHost, "12345678"); // Start the access point
       stdOut("Access Point \"" + espHost + "\" started");
-      stdOut("IP address:\t" + WiFi.softAPIP());
+      stdOut("IP address:\t" + WiFi.softAPIP().toString());
     }else{
       File wifiConnFail = SPIFFS.open("/wifiConnFail", "w");
       wifiConnFail.print("Connection to " + confSSID + " failed, attempting reset");
@@ -139,9 +141,12 @@ void configHttpServer(){
   stdOut("HTTP server started");
   stdOut("HTTPUpdateServer ready! Open http://" + espHost + ".local/update in browser");
 
+  udpServer.begin(81);
+  stdOut("udp server started on port 81");
+
   telnetServer.begin();
   telnetServer.setNoDelay(true);
-  stdOut("telnet server started");
+  stdOut("telnet server started on port 23");
 }
 
 void setup() {
@@ -172,6 +177,11 @@ void loop(){
   if (WiFi.status() != WL_CONNECTED){
     // TODO: if last ON request through http, turn off?
   }
+
+  if (udpServer.parsePacket()>0){
+    udpProcess();
+  }
+
   if (telnetServer.hasClient()) {
     if (!telnetClient) { // equivalent to !serverClients[i].connected()
       telnetClient = telnetServer.available();

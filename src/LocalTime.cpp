@@ -1,5 +1,5 @@
 
-#include <ESP8266WiFi.h>
+#include <includes.h>
 #include <LocalTime.h>
 
 void printLocalTime(){
@@ -33,5 +33,6 @@ void printLocalTime(){
   timeinfo = localtime (&rawtime);
 
   strftime (buffer,80," %d %B %Y %H:%M:%S ",timeinfo);
-  Serial.println(buffer);
+  stdOut(buffer);
+  //Serial.println(buffer);
 }

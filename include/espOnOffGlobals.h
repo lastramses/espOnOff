@@ -14,11 +14,13 @@
 #define besOFF 0x55
 #define besRelReqNULL 0x0 //used by relaySrc
 #define besRelReqHTTP 0x1 //phone or espswt
+#define besRelReqUDP 0x2 //espswt
 #define besRelReqESPButton 0x2 //onboard button
 
 #define stdOutTgt 3//0=none,1=serial,2=logString,3=serial&LogString
 extern EspRelay espOnOff;
 extern ESP8266WebServer httpServer;
+extern WiFiUDP udpServer;
 extern LogCircBuffer<512> logTelnetBuff;
 extern File fsUploadFile;
 extern String espHost;
