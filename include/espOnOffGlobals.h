@@ -23,5 +23,11 @@ extern ESP8266WebServer httpServer;
 extern WiFiUDP udpServer;
 extern LogCircBuffer<512> logTelnetBuff;
 extern File fsUploadFile;
-extern String espHost;
+//extern String espHost;
+extern String confEspHost;
+extern byte confMACAddr[6];
+extern String confSSID;
+extern String confPW;
+extern uint8_t confOffOnUnknownCmd;
+
 #endif

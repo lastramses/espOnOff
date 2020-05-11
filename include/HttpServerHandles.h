@@ -4,7 +4,6 @@ bool loadFromSpiffs(String path);
 
 void httpServerHandlePwrReq();
 void httpServerHandleGetData();
-void httpServerHandleFileUpload();
 void httpServerHandleFileUploadStream();
 void httpServerHandleSaveSSID();
 void httpServerHandleDeviceReset();

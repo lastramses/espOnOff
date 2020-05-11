@@ -36,7 +36,7 @@ void httpServerHandleGetData(){
     jsonFileList += "]}";
     httpServer.send(200, "text/html", jsonFileList);
   }else if(httpServer.hasArg("deviceData")==true){
-    String jsonDeviceData="{\"espData\":[{\"Field\":\"Host Name\",\"Data\":\"" + espHost + "\"},"
+    String jsonDeviceData="{\"espData\":[{\"Field\":\"Host Name\",\"Data\":\"" + confEspHost + "\"},"
     "{\"Field\":\"Device IP\",\"Data\":\"" + WiFi.localIP().toString() + "\"},"
     "{\"Field\":\"Device MAC Address\",\"Data\":\"" + WiFi.macAddress() + "\"},"
     "{\"Field\":\"WiFi RSSI\",\"Data\":\"" + String(WiFi.RSSI()) + "\"},"
@@ -52,27 +52,14 @@ void httpServerHandleGetData(){
     "{\"Field\":\"Last Reset Reason\",\"Data\":\"" + String(ESP.getResetReason()) + "\"}]}";
     httpServer.send(200, "text/html", jsonDeviceData);
   }else if(httpServer.hasArg("deviceSSID")==true){
-    String jsonDeviceData="{\"espData\":[{\"Field\":\"confSSID\",\"Data\":\"\"},"
-    "{\"Field\":\"confPW\",\"Data\":\"\"},"
-    "{\"Field\":\"confMACAddr\",\"Data\":\"" + WiFi.macAddress() + "\"}]}";
+    String jsonDeviceData="{\"espData\":["
+    "{\"Field\":\"confEspHost\",\"Data\":\"" + confEspHost + "\"},"
+    "{\"Field\":\"confSSID\",\"Data\":\"" + confSSID + "\"},"
+    "{\"Field\":\"confPW\",\"Data\":\"" + confPW + "\"},"
+    "{\"Field\":\"confMACAddr\",\"Data\":\"" + WiFi.macAddress() + "\"},"
+    "{\"Field\":\"confOffOnUnknownCmd\",\"Data\":\"" + String(confOffOnUnknownCmd) + "\"}]}";
     httpServer.send(200, "text/html", jsonDeviceData);
   }
-}
-
-void httpServerHandleFileUpload(){
-  logTelnetBuff.write("fileupload page requested\r\n");
-  String mainPage;
-  mainPage += "<!DOCTYPE html><html lang=\"en\">";
-  mainPage += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /></head>";
-  mainPage += "<title>espOnOff Livingroom 1 File Upload</title>";
-  mainPage += "<form action=\"fileuploadstream\" method=\"post\" enctype=\"mulipart/form-data\">";
-  /*mainPage += "<input type=\"file\" name=\"fileuploadstream\">";
-  mainPage += "<input class=\"button\" type=\"submit\" value=\"upload\">";*/
-  mainPage += "<input class='buttons' style='width:40%' type='file' name='fileuploadstream' id = 'fileuploadstream' value=''><br>";
-  mainPage += "<br><button class='buttons' style='width:10%' type='submit'>Upload File</button><br>";
-  mainPage += "</form></body></html>";
-  httpServer.sendHeader("Connection", "close");
-  httpServer.send(200, "text/html", mainPage);
 }
 
 void httpServerHandleFileUploadStream(){
@@ -121,12 +108,18 @@ void httpServerHandleSaveSSID(){
     if (tmpMACAddr.length()==17)
       configFile.print(tmpMACAddr);
     else
-      WiFi.macAddress();
+      configFile.print(WiFi.macAddress());
     configFile.write(3);
     configFile.print(httpServer.arg("confSSID"));
     configFile.write(3);
     configFile.print(httpServer.arg("confPW"));
     configFile.write(3);
+
+    configFile.print(httpServer.arg("confEspHost"));
+    configFile.write(3);
+    configFile.print(httpServer.arg("confOffOnUnknownCmd"));
+    configFile.write(3);
+
     configFile.close();
     httpServer.sendHeader("Location","/");
     httpServer.send(303);
@@ -190,27 +183,30 @@ bool loadFromSpiffs(String path) {
 
 void udpProcess(){
   char incomingPacket[255];
-    stdOut("Received " + String(udpServer.parsePacket()) + 
-      " bytes from " + udpServer.remoteIP().toString() + 
-      ":" + String(udpServer.remotePort()));
-    int len = udpServer.read(incomingPacket, 255);
-    if (len > 0)
-      incomingPacket[len] = 0;
-    String strIncomingPacket = String(incomingPacket);
-    stdOut("UDP packet contents: " + strIncomingPacket);
-    
-    udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
-    if (strIncomingPacket == "RelayStReq=0xAA"){
-      udpServer.write("0xAA");
-       espOnOff.setRelaySt(besON,besRelReqUDP);
-      stdOut("UDP Turn On Relay");
-    }else if (strIncomingPacket == "RelayStReq=0x55"){
-      udpServer.write("0xAA");
+  stdOut("Received " + String(udpServer.parsePacket()) + 
+    " bytes from " + udpServer.remoteIP().toString() + 
+    ":" + String(udpServer.remotePort()));
+  int len = udpServer.read(incomingPacket, 255);
+  if (len > 0)
+    incomingPacket[len] = 0; //terminator for string
+  String strIncomingPacket = String(incomingPacket);
+  stdOut("UDP packet contents: " + strIncomingPacket);
+   
+  udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+  if (strIncomingPacket == "RelayStReq=0xAA"){
+    udpServer.write("0xAA");
+    espOnOff.setRelaySt(besON,besRelReqUDP);
+    stdOut("UDP Turn On Relay");
+  }else if (strIncomingPacket == "RelayStReq=0x55"){
+    udpServer.write("0xAA");
+    espOnOff.setRelaySt(besOFF,besRelReqUDP);
+    stdOut("UDP Turn Off Relay");
+  }else{
+    udpServer.write("unknown command");
+    if (0!=confOffOnUnknownCmd){
       espOnOff.setRelaySt(besOFF,besRelReqUDP);
-      stdOut("UDP Turn Off Relay");
-    }else{
-      udpServer.write("unknown command");
-      stdOut("UDP unknown command");
+      stdOut("UDP unknown command, turning relay off");
     }
-    udpServer.endPacket();
+  }
+  udpServer.endPacket();
 }
