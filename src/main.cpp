@@ -46,6 +46,20 @@ void ICACHE_RAM_ATTR isrButton(){
 }
 
 void isrTick60sFunc(){
+  if(WiFi.getMode() !=WIFI_STA){ //in case of electricity outage, esp will come up faster than wifi router and reset to AP mode. To avoid manual power reset device will check if the confSSID is in range and reset.
+    //scan for networks, if confSSID in range, restart
+    int nWifi = WiFi.scanNetworks();
+    if (nWifi == 0)
+      stdOut("no wifi networks found");
+    else{
+      for (int i = 0; i < nWifi; ++i){
+        if(WiFi.SSID(i) == confSSID){ //is confSSID in range?
+          stdOut(confSSID + " found, reseting esp");
+          ESP.restart();
+        }
+      }
+    }
+  }
   printLocalTime();
 }
 
