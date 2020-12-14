@@ -13,6 +13,7 @@
             "request": "launch",
             "name": "PIO Debug",
             "executable": "/home/lastramses/Documents/dev/espOnOff/.pio/build/esp01_1m/firmware.elf",
+            "projectEnvName": "esp01_1m",
             "toolchainBinDir": "/home/lastramses/.platformio/packages/toolchain-xtensa/bin",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -25,6 +26,7 @@
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
             "executable": "/home/lastramses/Documents/dev/espOnOff/.pio/build/esp01_1m/firmware.elf",
+            "projectEnvName": "esp01_1m",
             "toolchainBinDir": "/home/lastramses/.platformio/packages/toolchain-xtensa/bin",
             "internalConsoleOptions": "openOnSessionStart"
         }
